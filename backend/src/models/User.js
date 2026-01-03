@@ -2,54 +2,76 @@ import pool from '../config/database.js';
 import bcrypt from 'bcryptjs';
 
 class User {
-  static async create(userData) {
-    const { employee_id, email, password, role } = userData;
+
+  // ===============================
+  // CREATE USER
+  // ===============================
+  static async create({ employee_id, email, password, role = 'Employee' }) {
     const hashedPassword = await bcrypt.hash(password, 10);
 
     const [result] = await pool.execute(
-      'INSERT INTO users (employee_id, email, password, role) VALUES (?, ?, ?, ?)',
-      [employee_id, email, hashedPassword, role || 'Employee']
+      `INSERT INTO users (employee_id, email, password, role)
+       VALUES (?, ?, ?, ?)`,
+      [employee_id, email, hashedPassword, role]
     );
 
     return result.insertId;
   }
 
+  // ===============================
+  // FIND BY EMAIL
+  // ===============================
   static async findByEmail(email) {
-    const [users] = await pool.execute(
-      'SELECT * FROM users WHERE email = ?',
+    const [rows] = await pool.execute(
+      'SELECT * FROM users WHERE email = ? LIMIT 1',
       [email]
     );
-    return users[0] || null;
+    return rows.length ? rows[0] : null;
   }
 
-  static async findById(id) {
-    const [users] = await pool.execute(
-      'SELECT id, employee_id, email, role, is_verified, created_at FROM users WHERE id = ?',
-      [id]
-    );
-    return users[0] || null;
-  }
-
+  // ===============================
+  // FIND BY EMPLOYEE ID
+  // ===============================
   static async findByEmployeeId(employee_id) {
-    const [users] = await pool.execute(
-      'SELECT * FROM users WHERE employee_id = ?',
+    const [rows] = await pool.execute(
+      'SELECT * FROM users WHERE employee_id = ? LIMIT 1',
       [employee_id]
     );
-    return users[0] || null;
+    return rows.length ? rows[0] : null;
   }
 
+  // ===============================
+  // FIND BY USER ID
+  // ===============================
+  static async findById(id) {
+    const [rows] = await pool.execute(
+      `SELECT id, employee_id, email, role, is_verified, created_at
+       FROM users WHERE id = ? LIMIT 1`,
+      [id]
+    );
+    return rows.length ? rows[0] : null;
+  }
+
+  // ===============================
+  // VERIFY PASSWORD
+  // ===============================
   static async verifyPassword(plainPassword, hashedPassword) {
-    return await bcrypt.compare(plainPassword, hashedPassword);
+    return bcrypt.compare(plainPassword, hashedPassword);
   }
 
+  // ===============================
+  // UPDATE PASSWORD
+  // ===============================
   static async updatePassword(userId, newPassword) {
     const hashedPassword = await bcrypt.hash(newPassword, 10);
+
     await pool.execute(
       'UPDATE users SET password = ? WHERE id = ?',
       [hashedPassword, userId]
     );
+
+    return true;
   }
 }
 
 export default User;
-
