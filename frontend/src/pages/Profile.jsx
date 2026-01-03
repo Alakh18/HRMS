@@ -17,12 +17,17 @@ const Profile = () => {
     const fetchProfile = async () => {
       try {
         const response = await employeeService.getMyProfile();
-        setEmployee(response.employee);
-        setFormData({
-          phone: response.employee.phone || '',
-          address: response.employee.address || '',
-          profile_picture: response.employee.profile_picture || ''
-        });
+        if (response.employee) {
+          setEmployee(response.employee);
+          setFormData({
+            phone: response.employee.phone || '',
+            address: response.employee.address || '',
+            profile_picture: response.employee.profile_picture || ''
+          });
+        } else {
+          // Employee profile doesn't exist yet
+          setEmployee(null);
+        }
       } catch (error) {
         console.error('Error fetching profile:', error);
       } finally {
@@ -66,7 +71,48 @@ const Profile = () => {
   if (!employee) {
     return (
       <Layout>
-        <div className="error-container">Employee profile not found</div>
+        <div className="profile-page">
+          <div className="profile-header">
+            <h1>My Profile</h1>
+          </div>
+          <div className="profile-container">
+            <div className="profile-card" style={{ textAlign: 'center', padding: '3rem' }}>
+              <div style={{ marginBottom: '1rem' }}>
+                <div className="profile-picture" style={{ margin: '0 auto 2rem', width: '120px', height: '120px' }}>
+                  <div className="avatar-placeholder" style={{ fontSize: '3rem' }}>
+                    {user?.email?.[0]?.toUpperCase() || 'U'}
+                  </div>
+                </div>
+              </div>
+              <h2 style={{ marginBottom: '1rem', color: '#333' }}>Profile Setup Required</h2>
+              <p style={{ marginBottom: '1.5rem', color: '#666', fontSize: '1.1rem' }}>
+                Your employee profile has not been set up yet. Please contact your HR department to complete your profile setup.
+              </p>
+              <div style={{ 
+                background: '#f5f5f5', 
+                padding: '1.5rem', 
+                borderRadius: '8px',
+                marginTop: '2rem',
+                textAlign: 'left',
+                maxWidth: '500px',
+                margin: '2rem auto 0'
+              }}>
+                <div className="detail-row">
+                  <span className="detail-label">Employee ID:</span>
+                  <span className="detail-value">{user?.employee_id || 'N/A'}</span>
+                </div>
+                <div className="detail-row">
+                  <span className="detail-label">Email:</span>
+                  <span className="detail-value">{user?.email || 'N/A'}</span>
+                </div>
+                <div className="detail-row">
+                  <span className="detail-label">Role:</span>
+                  <span className="detail-value">{user?.role || 'N/A'}</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
       </Layout>
     );
   }

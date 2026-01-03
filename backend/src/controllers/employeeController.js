@@ -38,7 +38,21 @@ export const getMyProfile = async (req, res) => {
     const employee = await Employee.findByUserId(req.user.id);
 
     if (!employee) {
-      return res.status(404).json({ message: 'Employee profile not found' });
+      // Return user info even if employee profile doesn't exist
+      const user = await User.findById(req.user.id);
+      if (!user) {
+        return res.status(404).json({ message: 'User not found' });
+      }
+      return res.json({ 
+        employee: null,
+        user: {
+          id: user.id,
+          employee_id: user.employee_id,
+          email: user.email,
+          role: user.role
+        },
+        message: 'Employee profile not yet created. Please contact HR to complete your profile setup.'
+      });
     }
 
     res.json({ employee });
